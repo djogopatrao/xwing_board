@@ -112,6 +112,7 @@
     var card_images;
     var shield_image = './img/s.png';
     var hull_image = './img/h.png';
+    var upgrade_card_back_image = './img/$type_back.png';
     $.ajax( './cards.json', {
         complete: function(x) {
             card_images = jQuery.parseJSON(x.responseText);
@@ -169,9 +170,14 @@
                 // TODO se for critico tirar carta etc
                 }
                 if ( hull == 0 ) {
-                    alert("Nave morreu");
                     alive = 0;
                     // TODO desativar botoes, deixar imagem cinza
+                    var filterVal = 'grayscale(100%) contrast(20%)';
+                    $('.img-pilot[ship-id='+shipId+'], .img-upgrade[ship-id='+shipId+']').css('filter',filterVal)
+                              .css('webkitFilter',filterVal)
+                              .css('mozFilter',filterVal)
+                              .css('oFilter',filterVal)
+                              .css('msFilter',filterVal);
                 }
             } else {
                 alert("Nave morreu");
@@ -203,6 +209,23 @@
             el.attr('ship-shields',shields);
             updateShieldsAndHull(shipId);
         });
+
+        $('.img-upgrade').click(function(e){
+            var flip, img;
+            if ( $(e.target).attr('xwing-flipped') != "1" ) {
+                img =  upgrade_card_back_image.replace('$type',$(e.target).attr('upgrade-type'));
+                $(e.target).attr('src-orig',$(e.target).attr('src'));
+                flip = 1;
+            } else {
+                img = $(e.target).attr('src-orig');
+                flip = 0;
+            }
+
+            
+            $(e.target).attr('src',img);
+            $(e.target).attr('xwing-flipped',flip);
+
+        })
     }
 
 
@@ -231,7 +254,7 @@
 
             var html = "<div class='row' ship-id='$id' ship-shields='$shi' ship-hull='$hul' ship-alive='1'>".replace("$id",shipId).replace("$shi",card_images.ships[ ship ].shi).replace('$hul',card_images.ships[ ship ].hul );
             html += '<div class="col-xs-4">';
-            html += '<img class="img" src="$" />'.replace('$',pilot_image);
+            html += '<img class="img img-pilot" ship-id="$id" src="$" />'.replace("$id",shipId).replace('$',pilot_image);
             html += '<div>';
             html += '<button class="btn btn-hit" ship-id="$id">Hit</button>'.replace("$id",shipId);
             html += '<button class="btn btn-crit" ship-id="$id">Crit</button>'.replace("$id",shipId);
@@ -247,7 +270,7 @@
             html += '<div class="col-xs-7">';
             $(upgrades).each(function(j,u) {
                 var upgrade_image = card_images.upgrades[ canonicalize(u) ].file;
-                html += '<img class="img"  src="$" />'.replace('$',upgrade_image);
+                html += '<img class="img img-upgrade" ship-id="$id" upgrade-type="$type" src="$" />'.replace('$type',card_images.upgrades[ canonicalize(u) ].type).replace("$id",shipId).replace('$',upgrade_image);
             });
             html += "</div>";
 
