@@ -261,34 +261,36 @@
                 var shipId = "ship-"+id;
 
                 var html = "<div class='row' ship-id='$id' ship-shields='$shi' ship-hull='$hul' ship-alive='1'>".replace("$id",shipId).replace("$shi",card_images.ships[ ship ].shi).replace('$hul',card_images.ships[ ship ].hul );
-                html += '<div class="col-xs-4">';
-                html += '<img class="img img-pilot" ship-id="$id" src="$" />'.replace("$id",shipId).replace('$',pilot_image);
-                html += '<div>';
-                html += '<button class="btn btn-hit" ship-id="$id">Hit</button>'.replace("$id",shipId);
-                html += '<button class="btn btn-crit" ship-id="$id">Crit</button>'.replace("$id",shipId);
-                html += '<button class="btn btn-regen" ship-id="$id">Regen</button>'.replace("$id",shipId);
-                html += '<button class="btn btn-hit-hull" ship-id="$id" title="Wampa, Kylo Ren">Hit Hull</button>'.replace("$id",shipId);
-                html += '</div>';
+                html += '<div class="col-xs-2">';
+                html += '<img class="img img-fluid img-pilot" ship-id="$id" src="$" style="width: 100%"/>'.replace("$id",shipId).replace('$',pilot_image);
                 html += '</div>';
 
                 // ship shields & hull
-                html += '<div class="col-xs-1 shield_hull" ship-id="$id">'.replace("$id",shipId);
+                html += '<div class="col-xs-2 shield_hull" ship-id="$id">'.replace("$id",shipId);
                 html += '</div>';
 
                 // upgrades
-                html += '<div class="col-xs-7">';
+                html += '<div class="col-xs-8">';
                 $(upgrades).each(function(j,u) {
 
                     if ( ! card_images.upgrades[ canonicalize(u) ] ) {
                         errors.push( "Upgrade '"+u+"' não cadastrado!" );
                     } else {
                         var upgrade_image = card_images.upgrades[ canonicalize(u) ].file;
-                        html += '<img class="img img-upgrade" ship-id="$id" upgrade-type="$type" src="$" />'.replace('$type',card_images.upgrades[ canonicalize(u) ].type).replace("$id",shipId).replace('$',upgrade_image);
+                        html += '<img class="img img-fluid img-upgrade" ship-id="$id" upgrade-type="$type" src="$" style="width: 12%"/>'.replace('$type',card_images.upgrades[ canonicalize(u) ].type).replace("$id",shipId).replace('$',upgrade_image);
                     }
                 });
                 html += "</div>";
 
                 html += "</div>";
+
+                html += '<div class="row button-rows"><div class="col-xs-12">';
+                html += '<button class="btn btn-hit" ship-id="$id">Hit</button>'.replace("$id",shipId);
+                html += '<button class="btn btn-crit" ship-id="$id">Crit</button>'.replace("$id",shipId);
+                html += '<button class="btn btn-regen" ship-id="$id">Regen</button>'.replace("$id",shipId);
+                html += '<button class="btn btn-hit-hull" ship-id="$id" title="Wampa, Kylo Ren">Hit Hull</button>'.replace("$id",shipId);
+                html += '</div></div>';
+
 
                 $('.container').prepend(html);
                 updateShieldsAndHull(shipId);
