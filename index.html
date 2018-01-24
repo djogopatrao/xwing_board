@@ -76,6 +76,7 @@
             <div class='row'>
             <div class='col-xs-12'>
             <h2>Board</h2>
+            <span id='pontuacao'></span>
             <div class='container'/>
             </div>
             </div>
@@ -260,7 +261,17 @@
                 var ship = card_images.pilots[ canonicalize(pilot) ].ship;
                 var shipId = "ship-"+id;
 
-                var html = "<div class='row' ship-id='$id' ship-shields='$shi' ship-hull='$hul' ship-alive='1'>".replace("$id",shipId).replace("$shi",card_images.ships[ ship ].shi).replace('$hul',card_images.ships[ ship ].hul );
+                var html = "";
+
+                if ( card_images.ships[ ship ] ) {
+                    html += "<div class='row' ship-id='$id' ship-shields='$shi' ship-hull='$hul' ship-alive='1'>"
+                            .replace("$id",shipId)
+                            .replace ("$shi",card_images.ships[ ship ].shi)
+                            .replace('$hul',card_images.ships[ ship ].hul );
+                } else {
+                    errors.push( "Nave "+ship+" não está cadastrada!");
+                    html += "<div class='row' ship-id='$id' ship-shields='1' ship-hull='1' ship-alive='1'>";
+                }
                 html += '<div class="col-xs-2">';
                 html += '<img class="img img-fluid img-pilot" ship-id="$id" src="$" style="width: 100%"/>'.replace("$id",shipId).replace('$',pilot_image);
                 html += '</div>';
@@ -297,8 +308,8 @@
             }
         });
         activateButtons()
-        console.log(squad_points)
-        alert(errors);
+        $('#pontuacao').html("Pontuação: "+squad_points);
+        if (errors!="") { alert(errors); }
 
     })
 
