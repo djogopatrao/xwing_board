@@ -277,23 +277,50 @@
                 errors.push( "Piloto "+pilot+" não esta cadastrado!" );
             } else {
 
+                var this_ship_points = 0;
                 var pilot_object = myFind( pilots, canonicalize(pilot) );
-                var pilot_image = base_url + pilot_object[0].image;
-                var ship_object = myFind( ships, canonicalize(pilot_object[0].ship) );
+                var ip = 0; // index of pilot
+                var all_upgrades = [];
+                var upgrade_points = 0;
+
+                // get all upgrades
+                $(ship_upgrades).each(function(j,u) {
+                    var uo = myFind(upgrades, canonicalize(u));
+                    all_upgrades.push( uo );
+                    if ( ! uo ) {
+                        errors.push( "Upgrade '"+u+"' não cadastrado!" );
+                    }
+                    upgrade_points += uo[0].points;
+                });
+
+                if ( $(pilot_object).length > 0 ) {
+                    ip = -1;
+                    $(pilot_object).each(function(i,p){ if ( p.points + upgrade_points == points ) { ip = i;} });
+                    if ( ip == -1 ) {
+                        alert("Pontos declarados nao correspondem ! Escolhendo qualquer versao do "+pilot);
+                        ip = 0;
+                    }
+                }
+                this_ship_points = pilot_object[ip].points + upgrade_points;
+
+                var pilot_image = base_url + pilot_object[ip].image;
+                var ship_object = myFind( ships, canonicalize(pilot_object[ip].ship) );
                 var shipId = "ship-"+id;
 
                 var html = "";
 
                 if ( ship_object ) {
-                    html += "<div class='row' ship-id='$id' ship-shields='$shi' ship-hull='$hul' ship-alive='1'>"
+                    html += "<div class='row' ship-id='$id' ship-shields='$shi' ship-hull='$hul' points='$poi'  ship-alive='1'>"
                             .replace("$id",shipId)
                             .replace ("$shi",ship_object[0].shields)
-                            .replace('$hul',ship_object[0].hull );
+                            .replace('$hul',ship_object[0].hull )
+                            .replace('$poi',this_ship_points);
                 } else {
                     errors.push( "Nave "+pilot_object[0].ship+" não está cadastrada!");
                     html += "<div class='row' ship-id='$id' ship-shields='1' ship-hull='1' ship-alive='1'>";
                 }
                 html += '<div class="col-xs-2">';
+                html += '<span class="points">Pontuação da nave: $poi</span>'.replace("$poi",this_ship_points);
                 html += '<img class="img img-fluid img-pilot" ship-id="$id" src="$" style="width: 100%"/>'.replace("$id",shipId).replace('$',pilot_image);
                 html += '</div>';
 
@@ -303,14 +330,11 @@
 
                 // upgrades
                 html += '<div class="col-xs-8">';
-                $(ship_upgrades).each(function(j,u) {
+                $(all_upgrades).each(function(j,u) {
 
-                    if ( ! myFind(upgrades, canonicalize(u) ) ) {
-                        errors.push( "Upgrade '"+u+"' não cadastrado!" );
-                    } else {
-                        var upgrade_object = myFind(upgrades, canonicalize(u) );
-                        var upgrade_image = base_url + upgrade_object[0].image;
-                        html += '<img class="img img-fluid img-upgrade" ship-id="$id" upgrade-type="$type" src="$" style="width: 12%"/>'.replace('$type',upgrade_object[0].slot).replace("$id",shipId).replace('$',upgrade_image);
+                    if ( u ) {
+                        var upgrade_image = base_url + u[0].image;
+                        html += '<img class="img img-fluid img-upgrade" ship-id="$id" upgrade-type="$type" src="$" style="width: 12%"/>'.replace('$type',u[0].slot).replace("$id",shipId).replace('$',upgrade_image);
                     }
                 });
                 html += "</div>";
@@ -330,7 +354,7 @@
             }
         });
         activateButtons()
-        $('#pontuacao').html("Pontuação: "+squad_points);
+        $('#pontuacao').html("Pontuação total do squad: "+squad_points);
         if (errors!="") { alert(errors); }
 
     })
