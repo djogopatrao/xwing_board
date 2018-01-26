@@ -95,11 +95,22 @@
 
     <!-- Menu Toggle Script -->
     <script>
-    var pilots,upgrades,ships;
+
+    // reference and databases
+    var pilots,upgrades,ships,damage_deck_cards,conditions;
+
+    // usable deck
+    var damage_deck;
+
+    // damage card assigned to ships
+    var ship_damage = {};
+
+    // other configuration
     var shield_image = './img/s.png';
     var hull_image = './img/h.png';
     var base_url = './bower_components/xwing-data/images/';
     var upgrade_card_back_image = './img/$type_back.png';
+    var damage_deck_back_image = base_url + '/damage-decks/core-tfa/back.png'
 
     $.ajax( './bower_components/xwing-data/data/pilots.js', {
         complete: function(x) {
@@ -116,6 +127,12 @@
     $.ajax( './bower_components/xwing-data/data/ships.js', {
         complete: function(x) {
             ships = jQuery.parseJSON(x.responseText);
+        }
+    });
+
+    $.ajax( './bower_components/xwing-data/data/damage-deck-core-tfa.js', {
+        complete: function(x) {
+            damage_deck_cards = jQuery.parseJSON(x.responseText);
         }
     });
 
@@ -144,6 +161,39 @@
         return $('.row[ship-id='+shipId+']');
     }
 
+    function shuffle(a) {
+        var j,x,i;
+        for (i=a.length-1;i>0;i--){
+            j = Math.floor(Math.random()*(i+1));
+            x = a[i];
+            a[i] = a[j];
+            a[j] = x;
+        }
+    }
+
+    /** damage deck **/
+    function prepareDamageDeck() {
+        damage_deck = []
+        $(damage_deck_cards).each(function(i,c){
+            for( var i=0;i<c.amount;i++ ){
+                damage_deck.push( c );
+            }
+        });
+        shuffle(damage_deck)
+    }
+
+    function drawDamageCard() {
+        return damage_deck.shift();
+    }
+
+    /** screen **/
+
+    function flipImageElement(e) {
+        var src = $(e.target).attr('src');
+        $(e.target).attr('src', $(e.target).attr('src-flip'));
+        $(e.target).attr('src-flip', src);
+    }
+
     function updateShieldsAndHull(shipId) {
 
         var el = findLineForShipId(shipId);
@@ -159,8 +209,18 @@
         for( var j=1; j<= shi; j++ ) {
             html += '<img class="img" src="$"/>'.replace('$',shield_image);
         }
+        // TODO allow flip cards (as per chewie, determination and specific actions)
+        $(ship_damage[shipId].up).each(function(i,c){
+                html += '<img class="img img-damage-card" src-flip="$back" style="width:50%" src="$"/>'
+                        .replace('$back', damage_deck_back_image )
+                        .replace('$',base_url + "/" + c.image );
+        });
+        // TODO show cards that are down, allowing to flip them.
 
-        $('.shield_hull[ship-id='+shipId+']').html(html)
+        $('.shield_hull[ship-id='+shipId+']').html(html);
+
+        // TODO it keeps erasing, creating HTML and hooking events to them; prone to overflow and future problems?
+        $('.img-damage-card').click(flipImageElement)
 
     }
 
@@ -189,10 +249,21 @@
 
             if ( shields > 0 && ! ignoreShield) {
                 shields --;
+                // algum efeito de crítico afeta shield?
             } else if ( hull > 0 ) {
+                card = drawDamageCard();
                 hull --;
                 if ( type=='crit' ) {
-                // TODO se for critico tirar carta etc
+                    // se existe ainda carta de dano crítico, vire-a.
+                    if ( card ) {
+                        // TODO direct hit
+                        ship_damage[shipId].up.push(card);
+                        if ( card.name == 'Direct Hit!' ) { // TODO language dependent!!! maybe hook code on json directly
+                            hull--;
+                        }
+                    } else {
+                        ship_damage[shipId].down.push(card)
+                    }
                 }
                 if ( hull == 0 ) {
                     alive = 0;
@@ -235,7 +306,8 @@
             updateShieldsAndHull(shipId);
         });
 
-        $('.img-upgrade').click(function(e){
+        $('.img-upgrade').click(flipImageElement);/*
+function(e){
             var flip, img;
             if ( $(e.target).attr('xwing-flipped') != "1" ) {
                 img =  upgrade_card_back_image.replace('$type',$(e.target).attr('upgrade-type'));
@@ -245,12 +317,13 @@
                 img = $(e.target).attr('src-orig');
                 flip = 0;
             }
-
             
             $(e.target).attr('src',img);
             $(e.target).attr('xwing-flipped',flip);
 
         })
+*/
+
     }
 
 
@@ -334,7 +407,8 @@
 
                     if ( u ) {
                         var upgrade_image = base_url + u[0].image;
-                        html += '<img class="img img-fluid img-upgrade" ship-id="$id" upgrade-type="$type" src="$" style="width: 12%"/>'.replace('$type',u[0].slot).replace("$id",shipId).replace('$',upgrade_image);
+                        var background_image = './img/'+ u[0].slot + '_back.png';
+                        html += '<img class="img img-fluid img-upgrade" ship-id="$id" upgrade-type="$type" src="$" src-flip="$background_image" style="width: 12%"/>'.replace('$type',u[0].slot).replace("$id",shipId).replace('$background_image',background_image).replace('$',upgrade_image);
                     }
                 });
                 html += "</div>";
@@ -350,11 +424,13 @@
 
 
                 $('.container').prepend(html);
+                ship_damage[shipId] = { up: [], down: [] };
                 updateShieldsAndHull(shipId);
             }
         });
         activateButtons()
         $('#pontuacao').html("Pontuação total do squad: "+squad_points);
+        prepareDamageDeck();
         if (errors!="") { alert(errors); }
 
     })
