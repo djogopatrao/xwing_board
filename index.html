@@ -115,9 +115,10 @@
     // other configuration
     var shield_image = './img/s.png';
     var hull_image = './img/h.png';
-    var base_url = './bower_components/xwing-data/images/';
+    var base_url = { 'en': './bower_components/xwing-data/images/', 'pt': './img/pt/' };
+    var lang = 'pt';
     var upgrade_card_back_image = './img/$type_back.png';
-    var damage_deck_back_image = base_url + '/damage-decks/core-tfa/back.png'
+    var damage_deck_back_image = base_url[lang] + '/damage-decks/core-tfa/back.png'
 
     $.ajax( './bower_components/xwing-data/data/pilots.js', {
         complete: function(x) {
@@ -220,13 +221,13 @@
         $(ship_damage[shipId].up).each(function(i,c){
                 html += '<img class="img img-damage-card" src-flip="$back" style="width:50%" src="$front"/>'
                         .replace('$back', damage_deck_back_image )
-                        .replace('$front',base_url + "/" + c.image );
+                        .replace('$front',base_url[lang] + "/" + c.image );
         });
         // TODO show cards that are down, allowing to flip them.
         $(ship_damage[shipId].down).each(function(i,c){
                 html += '<img class="img img-damage-card" src-flip="$back" style="width:50%" src="$front"/>'
                         .replace('$front', damage_deck_back_image )
-                        .replace('$back',base_url + "/" + c.image );
+                        .replace('$back',base_url[lang] + "/" + c.image );
         });
 
         $('.shield_hull[ship-id='+shipId+']').html(html);
@@ -392,7 +393,7 @@
                 }
                 this_ship_points = pilot_object[ip].points + upgrade_points;
 
-                var pilot_image = base_url + pilot_object[ip].image;
+                var pilot_image = base_url['en'] + pilot_object[ip].image; // TODO -- allow localization
                 var ship_object = myFind( ships, canonicalize(pilot_object[ip].ship) );
                 var shipId = "ship-"+id;
 
@@ -423,7 +424,7 @@
                 $(all_upgrades).each(function(j,u) {
 
                     if ( u ) {
-                        var upgrade_image = base_url + u[0].image;
+                        var upgrade_image = base_url['en'] + u[0].image; // TODO allow localization
                         var background_image = './img/'+ u[0].slot + '_back.png';
                         html += '<img class="img img-fluid img-upgrade" ship-id="$id" upgrade-type="$type" src="$" src-flip="$background_image" style="width: 12%"/>'.replace('$type',u[0].slot).replace("$id",shipId).replace('$background_image',background_image).replace('$',upgrade_image);
                     }
